@@ -1,0 +1,62 @@
+cmake_minimum_required(VERSION 3.10)
+project(MyCppProject)
+
+# Specify the C++ standard
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+
+# Define SQLite3 library from the amalgamation source
+add_library(sqlite3 "${CMAKE_SOURCE_DIR}/libs/sqlite3/sqlite-amalgamation-3450100/sqlite3.c")
+
+# Define the executable for queryinguser.cpp and its source files
+add_executable(queryTest code/queryinguser.cpp)
+
+# Define another executable for HelloWorldServer.cpp
+add_executable(HelloWorldServer code/HelloWorldServer.cpp)
+
+add_executable(EndpointTest code/endpointtest.cpp)
+
+
+add_executable(PlannerServer code/plannerserver.cpp)
+
+
+# Include directories for SQLite and httplib
+# Adjusting the include path for sqlite3.h to reflect its actual location
+target_include_directories(queryTest PRIVATE 
+    "${CMAKE_SOURCE_DIR}/libs/sqlite/sqlite-amalgamation-3450100"
+)
+
+target_include_directories(HelloWorldServer PRIVATE 
+    "${CMAKE_SOURCE_DIR}/libs/httplib"
+    "${CMAKE_SOURCE_DIR}/libs/sqlite/sqlite-amalgamation-3450100"  # Include SQLite for HelloWorldServer if needed
+    "${CMAKE_SOURCE_DIR}/libs/rapidjson/include"
+)
+
+target_include_directories(EndpointTest PRIVATE 
+    "${CMAKE_SOURCE_DIR}/libs/httplib"
+    "${CMAKE_SOURCE_DIR}/libs/sqlite/sqlite-amalgamation-3450100"  # Include SQLite for HelloWorldServer if needed
+    "${CMAKE_SOURCE_DIR}/libs/rapidjson/include"
+)
+
+target_include_directories(PlannerServer PRIVATE 
+    "${CMAKE_SOURCE_DIR}/libs/httplib"
+    "${CMAKE_SOURCE_DIR}/libs/sqlite/sqlite-amalgamation-3450100"  # Include SQLite for HelloWorldServer if needed
+    "${CMAKE_SOURCE_DIR}/libs/rapidjson/include"
+)
+# Link the SQLite library with queryTest
+target_link_libraries(queryTest PRIVATE sqlite3)
+
+target_link_libraries(PlannerServer PRIVATE sqlite3)
+
+# If using Windows sockets or networking, link against the Ws2_32 library
+if(WIN32)
+    target_link_libraries(queryTest PRIVATE Ws2_32)
+    target_link_libraries(HelloWorldServer PRIVATE Ws2_32)
+    target_link_libraries(EndpointTest PRIVATE Ws2_32)
+    target_link_libraries(PlannerServer PRIVATE Ws2_32)
+
+    set_target_properties(queryTest HelloWorldServer PROPERTIES
+        WIN32_EXECUTABLE FALSE
+    )
+endif()
